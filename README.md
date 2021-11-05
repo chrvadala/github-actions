@@ -6,21 +6,22 @@ A collection of common Github Actions, useful to test and release libraries.
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.me/chrvadala/25)
 
 # Table of Contents
-- [https://github.com/chrvadala/github-actions#nodejs-test-library-action](nodejs-test-library-action)
+- [nodejs-test-library-action](https://github.com/chrvadala/github-actions#nodejs-test-library-action)
 
-# nodejs-test-library-action
+# Actions
+## nodejs-test-library-action
 
 This NodeJS action allow us to install, build and test a library
 
-## Inputs
+### Inputs
 | Input        | Description                  |
 |--------------|------------------------------|
 | NODE_VERSION | Node.js version to setup     |
 
-## Outputs
+### Outputs
 No available outputs
 
-## Example
+### Example
 ```yaml
 name: Test
 
