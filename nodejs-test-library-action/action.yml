@@ -17,9 +17,9 @@ runs:
         cache: 'npm'
     - name: Install and Build
       run: |
-        npm ci
+        npm install 
         npm run build --if-present
       shell: bash
     - name: Run tests
-      run: npm run coverage
+      run: npm test
       shell: bash
