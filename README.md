@@ -14,7 +14,7 @@ A collection of common Github Actions, useful to test and release libraries.
 This composite action allows us to install, build and test a library.
 Main steps:
 - `npm install`
-- `npm run build (optional)`
+- `npm run build` (optional)
 - `npm test`
 
 ### Inputs
@@ -56,7 +56,7 @@ jobs:
 This composite action allows us to release a NodeJS library to npm.
 Main steps:
 - `npm ci`
-- `npm run build (optional)`
+- `npm run build` (optional)
 - `npm version major/minor/patch`
 - `npm test`
 - `npm publish`
