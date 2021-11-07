@@ -11,7 +11,11 @@ A collection of common Github Actions, useful to test and release libraries.
 
 ## nodejs-test-library-action
 
-This NodeJS action allow us to install, build and test a library
+This composite action allows us to install, build and test a library.
+Main steps:
+- `npm install`
+- `npm run build (optional)`
+- `npm test`
 
 ### Inputs
 | Input        | Description                  |
