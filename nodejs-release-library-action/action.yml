@@ -81,6 +81,11 @@ runs:
         tag_name: v${{ env.VERSION }}
         release_name: Release ${{ env.VERSION }}
         body: Release ${{ env.VERSION }}
+    - name: Publish to npm
+      run: npm publish ${{ env.ARTIFACT }}
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
+      shell: bash
     - name: Notice
       run: echo "::notice ::Plan to release a '${{ inputs.NEXT_VERSION }}' version and released the version '${{ env.VERSION }}'"
       shell: bash

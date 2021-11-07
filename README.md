@@ -59,8 +59,8 @@ Main steps:
 - `npm run build` (optional)
 - `npm version major/minor/patch`
 - `npm test`
-- `npm publish`
 - `create gh release`
+- `npm publish`
 
 
 ### Inputs
