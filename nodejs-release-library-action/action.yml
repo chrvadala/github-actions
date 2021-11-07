@@ -1,0 +1,85 @@
+name: Release NodeJS Library
+
+inputs:
+  NEXT_VERSION:
+    description: Define next version (major/minor/patch)
+    required: true
+  NPM_TOKEN:
+    description: NPM Token
+    required: true
+  GITHUB_TOKEN:
+    description: Github Token
+    required: true
+
+outputs:
+  VERSION:
+    description: Version
+    value: ${{ steps.bump_version.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate provided VERSION
+      if: ${{ ! contains( fromJson('["major", "minor", "patch"]'), inputs.NEXT_VERSION) }}
+      run: |
+        echo "INPUT_NEXT_VERSION= ${{ inputs.NEXT_VERSION }}"
+        echo "Invalid NEXT_VERSION input"
+        exit 1
+      shell: bash
+    - name: Validate current user
+      if: ${{ github.actor != 'chrvadala' }}
+      run: |
+        echo "Forbidden operation"
+        exit 1
+      shell: bash
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 14
+    - name: Configure git
+      run: |
+        git config --global user.name "Automation"
+        git config --global user.email "automation@example.com"
+      shell: bash
+    - name: Install and Build
+      run: |
+        npm ci
+        npm run build --if-present
+      shell: bash
+    - name: Bump next version
+      id: bump_version
+      run: |
+        npm version ${{ github.event.inputs.NEXT_VERSION }}
+        echo "VERSION=$(jq -j '.version' package.json)" >> $GITHUB_ENV
+        echo VERSION=${{ env.VERSION }}
+      shell: bash
+    - name: Pack library
+      run: echo "ARTIFACT=$(npm pack --json | jq -j .[0].filename)" >> $GITHUB_ENV
+      shell: bash
+    - uses: actions/upload-artifact@v2
+      with:
+        name: artifact
+        path: ${{ env.ARTIFACT }}
+    - name: Run tests
+      run: npm test
+      shell: bash
+    - name: Test publish to npm (dry run)
+      run: npm publish --dry-run ${{ env.ARTIFACT }}
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
+      shell: bash
+    - name: Push new version
+      run: |
+        git push 
+        git push --tags
+      shell: bash
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.VERSION }}
+        release_name: Release ${{ env.VERSION }}
+        body: Release ${{ env.VERSION }}
+    - name: Notice
+      run: echo "::notice ::Plan to release a '${{ inputs.NEXT_VERSION }}' version and released the version '${{ env.VERSION }}'"
+      shell: bash
