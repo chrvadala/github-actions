@@ -32,6 +32,12 @@ runs:
         echo "Forbidden operation"
         exit 1
       shell: bash
+    - name: Avoid double execution
+      if: ${{ github.run_attempt > 1 }}
+      run: |
+        echo "This action can't be executed two times, in the context of the same run"
+        exit 1
+      shell: bash      
     - uses: actions/setup-node@v2
       with:
         node-version: 14
