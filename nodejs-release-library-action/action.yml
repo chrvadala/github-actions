@@ -67,7 +67,12 @@ runs:
         name: artifact
         path: ${{ env.ARTIFACT }}
     - name: Run tests
-      run: npm test
+      run: |
+        if [ -f .env ]; then
+          env $(cat .env | xargs) npm test
+        else 
+          npm test
+        fi
       shell: bash
     - name: Test publish to npm (dry run)
       run: npm publish --dry-run ${{ env.ARTIFACT }}
