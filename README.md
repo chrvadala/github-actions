@@ -46,7 +46,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - uses: chrvadala/github-actions/nodejs-test-library-action@main
+      - uses: chrvadala/github-actions/nodejs-test-library-action@v1
         with:
           NODE_VERSION: ${{ matrix.node }}
 ```
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Release library
-        uses: chrvadala/github-actions/nodejs-release-library-action@main
+        uses: chrvadala/github-actions/nodejs-release-library-action@v1
         with:
           NEXT_VERSION: ${{ github.event.inputs.NEXT_VERSION }}
           NPM_TOKEN: ${{ secrets.npm_token }}
