@@ -1,6 +1,6 @@
 # chrvadala/github-actions
 
-A collection of common Github Actions, useful to test and release libraries. 
+A collection of common Github Actions, useful to test and publish software. 
 
 [![chrvadala](https://img.shields.io/badge/website-chrvadala-orange.svg)](https://chrvadala.github.io)
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.me/chrvadala/25)
@@ -8,13 +8,14 @@ A collection of common Github Actions, useful to test and release libraries.
 # Actions
 - [nodejs-test-library-action](https://github.com/chrvadala/github-actions#nodejs-test-library-action)
 - [nodejs-release-library-action](https://github.com/chrvadala/github-actions#nodejs-release-library-action)
+- [gh-pages-publish-action](https://github.com/chrvadala/github-actions#gh-pages-publish-action)
 
 ## nodejs-test-library-action
 
 This composite action allows us to install, build and test a library.
 Main steps:
 - `npm install`
-- `npm run build` (optional)
+- `npm run build` (if-needed)
 - `npm test`
 
 ### Inputs
@@ -56,10 +57,10 @@ jobs:
 This composite action allows us to release a NodeJS library to npm.
 Main steps:
 - `npm ci`
-- `npm run build` (optional)
+- `npm run build` (if-needed)
 - `npm version major/minor/patch`
 - `npm test`
-- `create gh release`
+- create gh release
 - `npm publish`
 
 
@@ -100,6 +101,42 @@ jobs:
         with:
           NEXT_VERSION: ${{ github.event.inputs.NEXT_VERSION }}
           NPM_TOKEN: ${{ secrets.npm_token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+## gh-pages-publish-action
+
+This composite action allows us to publish and update a website hostend on gh-pages.
+Main steps:
+- `npm install`
+- `npm run build` (if-needed)
+- `npm run website:build`
+- publish gh-pages
+
+### Inputs
+| Input        | Description                  |
+|--------------|------------------------------|
+| GITHUB_TOKEN | Valid token to Github   
+
+### Outputs
+No available outputs
+
+### Example
+```yaml
+name: Website
+
+on:
+  push:
+      branches:
+        - main
+
+jobs:
+  build_and_publish:
+    name: Publish Github Pages Website
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: chrvadala/github-actions/gh-pages-publish-action@v1
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 

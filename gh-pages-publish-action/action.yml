@@ -1,0 +1,34 @@
+name: Release NodeJS Library
+
+inputs:
+  GITHUB_TOKEN:
+    description: Github Token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 14
+        registry-url: https://registry.npmjs.org
+    - name: Configure git
+      run: |
+        git config --global user.name "Automation"
+        git config --global user.email "automation@example.com"
+      shell: bash
+    - name: Install and Build
+      run: |
+        npm ci
+        npm run build --if-present
+        npm run website:build
+      shell: bash
+    - uses: actions/upload-artifact@v2
+      with:
+        name: website
+        path: build-website
+    - name: Update website
+      run: |
+        git remote set-url origin https://git:${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        npx gh-pages@3 -d build-website -u "Automation <automation@example.com>"
+      shell: bash
