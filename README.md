@@ -105,7 +105,7 @@ jobs:
 ```
 ## gh-pages-publish-action
 
-This composite action allows us to publish and update a website hostend on gh-pages.
+This composite action allows us to publish and update a website hosted on gh-pages.
 Main steps:
 - `npm install`
 - `npm run build` (if-needed)
