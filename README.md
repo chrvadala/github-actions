@@ -3,7 +3,7 @@
 A collection of common Github Actions, useful to test and publish software. 
 
 [![chrvadala](https://img.shields.io/badge/website-chrvadala-orange.svg)](https://chrvadala.github.io)
-[![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.me/chrvadala/25)
+[![Donate](https://img.shields.io/badge/donate-GithubSponsor-green.svg)](https://github.com/sponsors/chrvadala)
 
 # Actions
 - [nodejs-test-library-action](https://github.com/chrvadala/github-actions#nodejs-test-library-action)
@@ -34,15 +34,13 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron:  '13 0 1 * *'
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-20.04 ]
-        node: [ 12, 14, 16 ]
+        os: [ ubuntu-22.04 ]
+        node: [ 14, 16, 18 ]
     name: Test Nodejs v${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -92,7 +90,7 @@ on:
 
 jobs:
   build_and_release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: ${{ github.event.inputs.REPOSITORY_NAME ==  github.repository }}
     steps:
       - uses: actions/checkout@v2
@@ -132,7 +130,7 @@ on:
 jobs:
   build_and_publish:
     name: Publish Github Pages Website
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - uses: chrvadala/github-actions/gh-pages-publish-action@v1
