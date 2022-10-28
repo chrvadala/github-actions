@@ -32,11 +32,6 @@ runs:
         echo "Forbidden operation"
         exit 1
       shell: bash
-    - name: Verify npm token
-      run: npm whoami
-      shell: bash
-      env:
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
     - name: Avoid double execution
       if: ${{ github.run_attempt > 1 }}
       run: |
@@ -84,6 +79,12 @@ runs:
       env:
         NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
       shell: bash
+    - name: Verify npm token
+      run: npm whoami
+      shell: bash
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
+    # Starting from here, in case of failure, a manual rollback is needed 
     - name: Push new version
       run: |
         git push 
