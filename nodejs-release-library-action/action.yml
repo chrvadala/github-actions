@@ -90,14 +90,14 @@ runs:
         git push 
         git push --tags
       shell: bash
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ env.VERSION }}
-        release_name: Release ${{ env.VERSION }}
-        body: Release ${{ env.VERSION }}
+#    - name: Create GitHub Release
+#      uses: actions/create-release@v1
+#      env:
+#        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+#      with:
+#        tag_name: v${{ env.VERSION }}
+#        release_name: Release ${{ env.VERSION }}
+#        body: Release ${{ env.VERSION }}
     - name: Publish to npm
       run: npm publish ${{ env.ARTIFACT }}
       env:
