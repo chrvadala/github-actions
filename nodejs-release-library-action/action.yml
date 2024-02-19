@@ -38,9 +38,9 @@ runs:
         echo "This action can't be executed two times, in the context of the same run"
         exit 1
       shell: bash      
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: 16
+        node-version: 20
         registry-url: https://registry.npmjs.org
     - name: Configure git
       run: |
@@ -62,7 +62,7 @@ runs:
     - name: Pack library
       run: echo "ARTIFACT=$(npm pack --json | jq -j .[0].filename)" >> $GITHUB_ENV
       shell: bash
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: artifact
         path: ${{ env.ARTIFACT }}
