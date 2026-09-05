@@ -1,4 +1,5 @@
-name: Release NodeJS Library
+name: Test NodeJS Library
+description: An action helper able to test a NodeJS library
 
 inputs:
   NODE_VERSION:
@@ -11,7 +12,7 @@ runs:
     - name: echo Inputs and Outputs
       run: echo "INPUT_NODE_VERSION=${{ inputs.NODE_VERSION }}"
       shell: bash
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.NODE_VERSION }}
     - name: Install and Build
