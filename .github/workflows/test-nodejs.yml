@@ -1,4 +1,4 @@
-name: Test NodeJS Library
+name: Shared Test - NodeJS Library
 
 on:
   workflow_call:
