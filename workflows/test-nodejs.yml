@@ -1,0 +1,83 @@
+name: Test NodeJS Library
+
+on:
+  workflow_call:
+    inputs:
+      node-versions:
+        description: JSON array of Node.js versions to test
+        required: true
+        type: string
+      command:
+        description: Multiline command to run before installing dependencies. Only pass trusted commands.
+        required: false
+        type: string
+        default: ''
+    secrets:
+      gh-token:
+        description: Github Token
+        required: true
+
+jobs:
+  test:
+    name: Test Nodejs v${{ matrix.node }} on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-26.04 ]
+        node: ${{ fromJSON(inputs.node-versions) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      #checkout code
+      - uses: actions/checkout@v7
+
+      #setup nodejs
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+
+      #run command
+      - name: Run custom Bash command
+        if: ${{ inputs.command != '' }}
+        env:
+          CUSTOM_COMMAND: ${{ inputs.command }}
+        run: |
+          bash -euo pipefail << 'EOF'
+          $CUSTOM_COMMAND
+          EOF
+        shell: bash
+
+      #install deps and build
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build --if-present
+        shell: bash
+
+      #run tests
+      - name: Run tests
+        run: |
+          if [ -f .env ]; then
+            env $(cat .env | xargs) npm test
+          else
+            npm test
+          fi
+        shell: bash
+
+      #publish code coverage
+      - name: Publish Coveralls
+        uses: coverallsapp/github-action@v2.3.8
+        with:
+          github-token: ${{ secrets.gh-token }}
+          flag-name: run-nodejs-v${{ matrix.node }}-${{ matrix.os }}
+          parallel: true
+
+  finish:
+    name: Finish
+    needs: test
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@v2.3.8
+        with:
+          github-token: ${{ secrets.gh-token }}
+          parallel-finished: true
+      
