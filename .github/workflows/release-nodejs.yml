@@ -1,0 +1,156 @@
+name: Shared Release - NodeJS Library
+
+on:
+  workflow_call:
+    inputs:
+      next-version:
+        description: Define next version (major/minor/patch)
+        required: true
+        type: string
+      command:
+        description: Multiline Bash command to run before installing dependencies. Only pass trusted commands.
+        required: false
+        type: string
+        default: ''
+    outputs:
+      version:
+        description: Released version
+        value: ${{ jobs.release.outputs.version }}
+
+jobs:
+  release:
+    name: Test and Release
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+      packages: write #for gh registry only
+    outputs:
+      version: ${{ steps.bump_version.outputs.version }}
+    steps:
+      # Checkout the repository using the GitHub token.
+      - uses: actions/checkout@v7
+
+      # Install Node.js and configure the npm registry.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+          #registry-url: https://npm.pkg.github.com
+          #scope: '@chrvadala'
+
+      # Run the optional custom Bash command.
+      - name: Run custom Bash command
+        if: ${{ inputs.command != '' }}
+        env:
+          CUSTOM_COMMAND: ${{ inputs.command }}
+        run: |
+          bash -euo pipefail << 'EOF'
+          $CUSTOM_COMMAND
+          EOF
+        shell: bash
+
+      # Validate the requested semantic version increment.
+      - name: Validate provided version
+        env:
+          NEXT_VERSION: ${{ inputs['next-version'] }}
+        run: |
+          if [[ ! "$NEXT_VERSION" =~ ^(major|minor|patch)$ ]]; then
+            echo "Invalid NEXT_VERSION input: $NEXT_VERSION"
+            exit 1
+          fi
+        shell: bash
+
+      # Restrict releases to the configured repository owner.
+      - name: Validate current user
+        if: ${{ github.actor != 'chrvadala' }}
+        run: |
+          echo "Forbidden operation"
+          exit 1
+        shell: bash
+
+      # Prevent retrying a release within the same workflow run.
+      - name: Avoid double execution
+        if: ${{ github.run_attempt > 1 }}
+        run: |
+          echo "This workflow can't be executed two times in the context of the same run"
+          exit 1
+        shell: bash
+
+      # Configure the Git identity used for the version commit.
+      - name: Configure git
+        run: |
+          git config --global user.name "Automation"
+          git config --global user.email "automation@example.com"
+        shell: bash
+
+      # Install dependencies and run the optional build.
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build --if-present
+        shell: bash
+
+      # Bump the package version and expose it as a workflow output.
+      - name: Bump next version
+        id: bump_version
+        env:
+          NEXT_VERSION: ${{ inputs['next-version'] }}
+        run: |
+          npm version "$NEXT_VERSION"
+          VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      # Create the npm package archive.
+      - name: Pack library
+        id: pack
+        run: |
+          ARTIFACT=$(npm pack --json | jq -r '.[0].filename')
+          echo "artifact=$ARTIFACT" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      # Store the package archive as a workflow artifact.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: artifact
+          path: ${{ steps.pack.outputs.artifact }}
+
+      # Run the package test suite.
+      - name: Run tests
+        run: |
+          if [ -f .env ]; then
+            env $(cat .env | xargs) npm test
+          else
+            npm test
+          fi
+        shell: bash
+
+      # Validate the package contents with a dry-run publish.
+      - name: Test publish to npm (dry run)
+        run: npm publish --dry-run "$ARTIFACT"
+        env:
+          ARTIFACT: ${{ steps.pack.outputs.artifact }}
+        shell: bash
+
+      # Push the version commit and tag to the repository.
+      - name: Push new version
+        run: |
+          git push
+          git push --tags
+        shell: bash
+
+      # Publish the package.
+      - name: Publish Package
+        run: npm publish "$ARTIFACT"
+        env:
+          ARTIFACT: ${{ steps.pack.outputs.artifact }}
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        shell: bash
+
+      # Report the released version in the workflow summary.
+      - name: Notice
+        run: echo "::notice ::Planned a '$NEXT_VERSION' release and released version '$VERSION'"
+        env:
+          NEXT_VERSION: ${{ inputs['next-version'] }}
+        shell: bash
