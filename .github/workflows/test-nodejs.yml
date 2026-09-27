@@ -12,10 +12,6 @@ on:
         required: false
         type: string
         default: ''
-    secrets:
-      gh-token:
-        description: Github Token
-        required: true
 
 jobs:
   test:
@@ -66,7 +62,6 @@ jobs:
       - name: Publish Coveralls
         uses: coverallsapp/github-action@v2.3.8
         with:
-          github-token: ${{ secrets.gh-token }}
           flag-name: run-nodejs-v${{ matrix.node }}-${{ matrix.os }}
           parallel: true
 
@@ -78,6 +73,5 @@ jobs:
       - name: Coveralls Finished
         uses: coverallsapp/github-action@v2.3.8
         with:
-          github-token: ${{ secrets.gh-token }}
           parallel-finished: true
       
