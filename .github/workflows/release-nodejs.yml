@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: write
+      id-token: write
       packages: write #for gh registry only
     outputs:
       version: ${{ steps.bump_version.outputs.version }}
@@ -145,7 +146,6 @@ jobs:
         run: npm publish "$ARTIFACT"
         env:
           ARTIFACT: ${{ steps.pack.outputs.artifact }}
-          NODE_AUTH_TOKEN: ${{ github.token }}
         shell: bash
 
       # Report the released version in the workflow summary.
