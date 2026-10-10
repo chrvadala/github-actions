@@ -74,10 +74,10 @@ jobs:
   finish:
     name: Finish
     needs: test
-    if: ${{ inputs.coveralls_enabled }}
     runs-on: ubuntu-26.04
     steps:
       - name: Coveralls Finished
+        if: ${{ inputs.coveralls_enabled }}
         uses: coverallsapp/github-action@v2.3.8
         with:
           parallel-finished: true
