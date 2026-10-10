@@ -34,7 +34,7 @@ This reusable workflow runs a matrix-based test job for a Node.js library.
 
 ### Example
 ```yaml
-name: Test my library
+name: Test
 
 on:
   push:
@@ -43,13 +43,13 @@ on:
 
 jobs:
   test:
+    uses: chrvadala/github-actions/.github/workflows/test-nodejs.yml@v2
     permissions:
       contents: read
       checks: write
       pull-requests: write
-    uses: chrvadala/github-actions/.github/workflows/test-nodejs.yml@v2
     with:
-      node-versions: '["18", "20", "22"]'
+      node-versions: '[24,26]'
       command: |
         echo "Custom setup"
 ```
@@ -82,7 +82,7 @@ This reusable workflow validates the requested release level, prepares the packa
 
 ### Example
 ```yaml
-name: Release my library
+name: Release
 
 on:
   workflow_dispatch:
@@ -90,13 +90,18 @@ on:
       next-version:
         description: Define next version (major/minor/patch)
         required: true
+      repository-name:
+        description: Repository full name
+        required: true
 
 jobs:
   release:
+    if: ${{ github.event.inputs['repository-name'] == github.repository }}
+    uses: chrvadala/github-actions/.github/workflows/release-nodejs.yml@v2
     permissions:
       contents: write
       packages: write
-    uses: chrvadala/github-actions/.github/workflows/release-nodejs.yml@v2
+      id-token: write
     with:
       next-version: ${{ github.event.inputs.next-version }}
       command: |
