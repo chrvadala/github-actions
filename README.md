@@ -1,34 +1,40 @@
 # chrvadala/github-actions
 
-A collection of common Github Actions, useful to test and publish software. 
+Reusable GitHub Actions and workflow templates for Node.js projects, release automation, and GitHub Pages publishing.
 
 [![chrvadala](https://img.shields.io/badge/website-chrvadala-orange.svg)](https://chrvadala.github.io)
 [![Donate](https://img.shields.io/badge/donate-GithubSponsor-green.svg)](https://github.com/sponsors/chrvadala)
 
-# Actions
-- [nodejs-test-library-action](https://github.com/chrvadala/github-actions#nodejs-test-library-action)
-- [nodejs-release-library-action](https://github.com/chrvadala/github-actions#nodejs-release-library-action)
-- [gh-pages-publish-action](https://github.com/chrvadala/github-actions#gh-pages-publish-action)
+## Available assets
 
-## nodejs-test-library-action
+This repository currently includes:
 
-This composite action allows us to install, build and test a library.
-Main steps:
-- `npm install`
-- `npm run build` (if-needed)
-- `npm test`
+- reusable workflow for Node.js library testing in [.github/workflows/test-nodejs.yml](.github/workflows/test-nodejs.yml)
+- reusable workflow for Node.js library release in [.github/workflows/release-nodejs.yml](.github/workflows/release-nodejs.yml)
+- composite action for publishing a website to GitHub Pages in [gh-pages-publish-action/action.yml](gh-pages-publish-action/action.yml)
+
+## test-nodejs workflow
+
+This reusable workflow runs a matrix-based test job for a Node.js library.
 
 ### Inputs
-| Input        | Description                  |
-|--------------|------------------------------|
-| NODE_VERSION | Node.js version to setup     |
+| Input | Description |
+| --- | --- |
+| node-versions | JSON array of Node.js versions to test, for example `["18", "20", "22"]` |
+| command | Optional multiline shell command executed before dependency installation |
 
-### Outputs
-No available outputs
+### What it does
+- checks out the repository
+- sets up Node.js
+- optionally runs a custom command
+- runs `npm ci`
+- runs `npm run build --if-present`
+- runs `npm test`
+- uploads coverage to Coveralls
 
 ### Example
 ```yaml
-name: Test
+name: Test my library
 
 on:
   push:
@@ -36,108 +42,102 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ ubuntu-22.04 ]
-        node: [ 14, 16, 18 ]
-    name: Test Nodejs v${{ matrix.node }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: chrvadala/github-actions/nodejs-test-library-action@v1
-        with:
-          NODE_VERSION: ${{ matrix.node }}
+  test:
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    uses: chrvadala/github-actions/.github/workflows/test-nodejs.yml@v2
+    with:
+      node-versions: '["18", "20", "22"]'
+      command: |
+        echo "Custom setup"
 ```
 
-## nodejs-release-library-action
+## release-nodejs workflow
 
-This composite action allows us to release a NodeJS library to npm.
-Main steps:
-- `npm ci`
-- `npm run build` (if-needed)
-- `npm version major/minor/patch`
-- `npm test`
-- create gh release
-- `npm publish`
-
+This reusable workflow validates the requested release level, prepares the package, runs tests, and publishes to npm.
 
 ### Inputs
-| Input        | Description                                                            |
-|--------------|------------------------------------------------------------------------|
-| NEXT_VERSION | The version that we want to release (one of `major`, `minor`, `patch`) |
-| NPM_TOKEN    | Valid token to NPM                                                     |
-| GITHUB_TOKEN | Valid token to Github                                                  |
+| Input | Description |
+| --- | --- |
+| next-version | Release bump to apply: `major`, `minor`, or `patch` |
+| command | Optional multiline shell command executed before dependency installation |
 
 ### Outputs
-| Output  | Description      |
-|---------|------------------|
-| VERSION | Released version |
+| Output | Description |
+| --- | --- |
+| version | The released package version |
+
+### What it does
+- validates the requested release type
+- optionally runs a custom pre-install command
+- installs dependencies and runs a build if present
+- bumps the package version with `npm version`
+- packs the library
+- runs the project test suite
+- performs a dry-run publish
+- pushes the version tag and commit
+- publishes the package to npm
 
 ### Example
 ```yaml
-name: Release
+name: Release my library
 
 on:
   workflow_dispatch:
-   inputs:
-      NEXT_VERSION:
+    inputs:
+      next-version:
         description: Define next version (major/minor/patch)
-        required: true
-      REPOSITORY_NAME:
-        description: Repository full name (e.g. chrvadala/hello )
         required: true
 
 jobs:
-  build_and_release:
-    runs-on: ubuntu-22.04
-    if: ${{ github.event.inputs.REPOSITORY_NAME ==  github.repository }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Release library
-        uses: chrvadala/github-actions/nodejs-release-library-action@v1
-        with:
-          NEXT_VERSION: ${{ github.event.inputs.NEXT_VERSION }}
-          NPM_TOKEN: ${{ secrets.npm_token }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release:
+    permissions:
+      contents: write
+      packages: write
+    uses: chrvadala/github-actions/.github/workflows/release-nodejs.yml@v2
+    with:
+      next-version: ${{ github.event.inputs.next-version }}
+      command: |
+        echo "Prerelease setup"
 ```
+
 ## gh-pages-publish-action
 
-This composite action allows us to publish and update a website hosted on gh-pages.
-Main steps:
-- `npm install`
-- `npm run build` (if-needed)
-- `npm run website:build`
-- publish gh-pages
+This composite action publishes the generated website to GitHub Pages.
 
 ### Inputs
-| Input        | Description                  |
-|--------------|------------------------------|
-| GITHUB_TOKEN | Valid token to Github   
+| Input | Description |
+| --- | --- |
+| GITHUB_TOKEN | GitHub token used to update the gh-pages branch |
 
-### Outputs
-No available outputs
+### What it does
+- sets up Node.js
+- installs dependencies
+- builds the project
+- runs `npm run website:build`
+- uploads the generated website artifact
+- publishes the `build-website` folder to `gh-pages`
 
 ### Example
 ```yaml
-name: Website
+name: Publish website
 
 on:
   push:
-      branches:
-        - main
+    branches:
+      - main
 
 jobs:
-  build_and_publish:
-    name: Publish Github Pages Website
-    runs-on: ubuntu-22.04
+  publish:
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: chrvadala/github-actions/gh-pages-publish-action@v1
+      - uses: actions/checkout@v7
+      - uses: chrvadala/github-actions/gh-pages-publish-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-
 
 ## Contributors
 - [chrvadala](https://github.com/chrvadala) (author)
