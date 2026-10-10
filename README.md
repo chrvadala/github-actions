@@ -22,6 +22,7 @@ This reusable workflow runs a matrix-based test job for a Node.js library.
 | --- | --- |
 | node-versions | JSON array of Node.js versions to test, for example `["18", "20", "22"]` |
 | command | Optional multiline shell command executed before dependency installation |
+| coveralls_enabled | Boolean flag to enable or disable upload to Coveralls. Defaults to `true`. |
 
 ### What it does
 - checks out the repository
@@ -50,6 +51,7 @@ jobs:
       pull-requests: write
     with:
       node-versions: '[24,26]'
+      coveralls_enabled: false
       command: |
         echo "Custom setup"
 ```

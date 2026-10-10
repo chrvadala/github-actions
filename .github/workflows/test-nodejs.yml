@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ''
+      coveralls_enabled:
+        description: Enable publishing coverage to Coveralls
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   test:
@@ -60,6 +65,7 @@ jobs:
 
       #publish code coverage
       - name: Publish Coveralls
+        if: ${{ inputs.coveralls_enabled }}
         uses: coverallsapp/github-action@v2.3.8
         with:
           flag-name: run-nodejs-v${{ matrix.node }}-${{ matrix.os }}
@@ -68,6 +74,7 @@ jobs:
   finish:
     name: Finish
     needs: test
+    if: ${{ inputs.coveralls_enabled }}
     runs-on: ubuntu-26.04
     steps:
       - name: Coveralls Finished
