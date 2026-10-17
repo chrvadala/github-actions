@@ -41,9 +41,9 @@ jobs:
         env:
           CUSTOM_COMMAND: ${{ inputs.command }}
         run: |
-          bash -euo pipefail << 'EOF'
-          $CUSTOM_COMMAND
-          EOF
+          command_file=$(mktemp)
+          printf '%s\n' "$CUSTOM_COMMAND" > "$command_file"
+          bash -euo pipefail "$command_file"
         shell: bash
 
       #install deps and build
